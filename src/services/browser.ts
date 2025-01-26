@@ -124,8 +124,7 @@ export class BrowserService {
           ?.textContent?.trim() || "";
 
       // 職務経歴の取得
-      const careerBoxes = iboxes.filter((box) => box.querySelector(".c-heading-text")?.textContent?.includes("職務経歴"));
-
+      const careerBoxes = iboxes.filter((box) => box.querySelector(".c-heading-text")?.textContent?.includes("年収評価シート"));
       // 全ての職務経歴テキストを結合
       const careerText = careerBoxes
         .map((box) => box.querySelector(".markdown-style")?.textContent?.trim() || "")
@@ -152,7 +151,6 @@ export class BrowserService {
       preferredLocation: data.preferredLocation,
       preferredSalary: data.preferredSalary,
       careerSummary: careerAnalysis.summary,
-      recommendPoint: String(careerAnalysis.point),
     };
   }
 

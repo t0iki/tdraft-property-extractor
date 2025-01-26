@@ -48,7 +48,7 @@ OPENAI_API_KEY=your_openai_api_key
 以下をコピーして、スプレッドシートの1行目に貼り付けてください：
 
 ```
-id,age,ambition,careerSummary,skills,preferredLocation,preferredSalary,careerLevel,strengthPoints,status,lastUpdated
+id,age,ambition,preferredLocation,preferredSalary,careerSummary,skills,status,lastUpdated
 ```
 
 各カラムの説明：
@@ -63,11 +63,7 @@ id,age,ambition,careerSummary,skills,preferredLocation,preferredSalary,careerLev
 - careerSummary: 主要な職務経歴の要約（担当プロジェクトや役割など）
 - skills: 主なスキル
 
-3. LLM分析結果
-- careerLevel: キャリアレベル評価
-- strengthPoints: 強みとなるポイント
-
-4. ステータス管理
+3. ステータス管理
 - status: 処理状態（pending/processing/completed/error）
 - lastUpdated: 最終更新日時
 
@@ -78,18 +74,11 @@ id,age,ambition,careerSummary,skills,preferredLocation,preferredSalary,careerLev
 - status列は空欄（pending）または「error」のデータが処理対象
 
 2. 実行:
-開発モードで実行:
 ```bash
 npm run dev
 ```
 
-ビルドして実行:
-```bash
-npm run build
-npm start
-```
-
-3. 結果の確認:
+1. 結果の確認:
 - status列で処理状態を確認（completed: 成功, error: 失敗）
 - lastUpdated列で処理日時を確認
 - 各カラムに取得したデータが格納されます

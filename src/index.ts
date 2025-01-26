@@ -54,18 +54,23 @@ async function main() {
         await spreadsheet.updateRow(row.index, {
           id,
           ...profileData,
-          careerSummaryHighlights: JSON.stringify(profileAnalysis.careerHighlights.highlights),
+          careerSummaryHighlights: JSON.stringify(
+            profileAnalysis.careerHighlights.highlights.map((h) => ({
+              p: h.point,
+              r: h.reason,
+              i: h.impact,
+            }))
+          ),
           careerSummaryAnalysis: profileAnalysis.careerHighlights.summary,
           motivationLevel: profileAnalysis.motivationLevel,
           ambitionSummary: profileAnalysis.ambitionSummary,
-          recommendPoint: profileAnalysis.careerHighlights.point.toString(),
           status: "completed",
         });
 
         console.log("Profile processed successfully");
 
         // 処理間隔を設ける（サーバー負荷軽減のため）
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       } catch (error) {
         console.error(`Error processing ID ${id}:`, error);
         // エラー時はステータスを更新

@@ -29,7 +29,7 @@ ${description}
 `;
 
     const response = await this.client.chat.completions.create({
-      model: "chatgpt-4o-latest",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -76,7 +76,6 @@ ${description}
         impact: string;
       }[];
       summary: string;
-      point: number;
     };
     motivationLevel: string;
     ambitionSummary: string;
@@ -84,11 +83,13 @@ ${description}
     // 経歴サマリーの詳細分析
     const careerHighlights = await this.extractCareerHighlights(profileData.careerSummary);
 
-    const prompt = `
-以下のプロフィール情報を分析し、以下の情報を抽出・評価してJSON形式で返してください：
+    console.log("Starting profile analysis with data:", {
+      ...profileData,
+      careerSummary: profileData.careerSummary.substring(0, 100) + "...", // 長すぎる場合のために省略
+    });
 
-- motivationLevel: 転職意欲の強さを5段階で評価（1: 非常に低い ～ 5: 非常に高い）
-- ambitionSummary: 野望や目標の要約（100文字程度）
+    const prompt = `
+以下が候補者のプロフィールです。以下の情報を分析し、JSON形式で返してください：
 
 プロフィール情報：
 年齢: ${profileData.age}
@@ -97,14 +98,23 @@ ${description}
 野望: ${profileData.ambition}
 最終学歴: ${profileData.education}
 スキル: ${profileData.skills}
+経歴サマリー: ${profileData.careerSummary}
+
+返却フォーマット：
+{
+  "motivationLevel": "転職意欲レベル（1-5）",
+  "ambitionSummary": "野望や目標から読み取れる将来性の分析"
+}
 `;
 
+    console.log("Generated prompt for profile analysis:", prompt);
+
     const response = await this.client.chat.completions.create({
-      model: "chatgpt-4o-latest",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: "あなたはエンジニアの転職意欲と将来性を評価する専門家です。",
+          content: "あなたはエンジニアの転職意欲と将来性を評価する専門家です。分析結果は必ずJSON形式で返してください。",
         },
         {
           role: "user",
@@ -127,7 +137,6 @@ ${description}
         careerHighlights: {
           highlights: [],
           summary: "",
-          point: -1,
         },
         motivationLevel: "1",
         ambitionSummary: "",
@@ -142,43 +151,41 @@ ${description}
       impact: string;
     }[];
     summary: string;
-    point: number;
   }> {
+    console.log("Starting career highlights extraction");
+    console.log("Career summary length:", careerSummary.length);
+    console.log("Career summary preview:", careerSummary.substring(0, 100) + "...");
+
+    if (!careerSummary.trim()) {
+      console.warn("Career summary is empty or contains only whitespace");
+      return {
+        highlights: [],
+        summary: "経歴サマリーが提供されていません。",
+      };
+    }
+
     const prompt = `
-以下の経歴サマリーを詳細に分析し、特に評価が高くなりそうな内容を抽出してJSON形式で返してください。
-
-分析の観点：
-1. インパクトのある成果
-   - 事業への貢献度
-   - 技術的な革新性
-   - チームや組織への影響
-
-2. 技術力の証明
-   - 複雑な技術課題の解決
-   - 新技術の導入や最適化
-   - アーキテクチャ設計の妥当性
-
-3. 成長性・ポテンシャル
-   - 学習能力や適応力
-   - 責任範囲の拡大
-   - キャリアの一貫性
-
-4. リーダーシップ・影響力
-   - チームマネジメント
-   - メンタリング
-   - 組織改善への貢献
+以下の経歴サマリーを読み、下記のポイントを着目しながら良いと思った内容を抽出して、JSON形式で返してください。
+経歴の中で相対的で良いので、できるだけ空配列と空文字列は避けてください。
+よく読んだ上で関連する内容がどうしても見つからない場合は、空配列のhighlightsと特筆すべきポイントはありませんでしたとsummaryに入れて返してください。
+また、経歴の詳細が非公開の場合は空配列のhighlightsと詳細非公開とsummaryに入れて返してください。
+・アーキテクチャなどプロダクトの初期設計に関わったことがある
+・新規プロダクトの立ち上げをしている
+・チームリード経験がある
+・領域を絞らずフルスタック幅広く開発している
+・フロントエンド、もしくはバックエンド、インフラのどこかにかなり集中して取り組んできている
+・個人開発など、プロダクト開発をこれまでたくさんしている。
 
 返却フォーマット：
 {
   "highlights": [
     {
-      "point": "抽出したアピールポイント（具体的な出来事や成果）",
-      "reason": "なぜこれが評価されるのか、その理由と背景",
-      "impact": "このポイントが示す応募者の能力や将来性"
+      "point": "抽出したポイント（具体的な出来事や成果）",
+      "reason": "なぜ評価されるのか、その理由",
+      "impact": "このポイントが示す応募者の能力や志向性"
     }
   ],
-  "summary": "全体を通して見た応募者の強み（200文字程度）"
-  "point": "summaryの内容から判断するエンジニアが20人未満の小規模な事業会社で活躍できそう度(10段階)"
+  "summary": "highlightsの内容から要約したポイント"
 }
 
 経歴サマリー：
@@ -186,7 +193,7 @@ ${careerSummary}
 `;
 
     const response = await this.client.chat.completions.create({
-      model: "chatgpt-4o-latest",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -210,18 +217,28 @@ ${careerSummary}
     });
 
     try {
+      console.log("Raw LLM response:", response.choices[0].message.content);
+
       const result = JSON.parse(response.choices[0].message.content || "{}");
-      return {
+      console.log("Parsed career highlights result:", result);
+
+      if (!result.highlights && !result.summary) {
+        console.warn("LLM response missing both highlights and summary");
+      }
+
+      const processedResult = {
         highlights: result.highlights || [],
         summary: result.summary || "",
-        point: result.point || -1,
       };
+
+      console.log("Final processed career highlights:", processedResult);
+      return processedResult;
     } catch (error) {
       console.error("Failed to parse LLM response:", error);
+      console.error("Raw response content:", response.choices[0].message.content);
       return {
         highlights: [],
-        summary: "",
-        point: -1,
+        summary: "経歴サマリーの解析中にエラーが発生しました。",
       };
     }
   }

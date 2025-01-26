@@ -16,7 +16,6 @@ type RowData = {
   careerSummaryAnalysis?: string; // 全体の要約
   motivationLevel?: string;
   ambitionSummary?: string;
-  recommendPoint?: string; // 推薦度（数値を文字列として保存）
   // ステータス管理
   status?: string;
   lastUpdated?: string;
